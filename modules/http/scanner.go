@@ -42,6 +42,7 @@ type Flags struct {
 	Method       string `long:"method" default:"GET" description:"Set HTTP request method type"`
 	Endpoint     string `long:"endpoint" default:"/" description:"Send an HTTP request to an endpoint"`
 	UserAgent    string `long:"user-agent" default:"Mozilla/5.0 zgrab/0.x" description:"Set a custom user agent"`
+	HostName    string `long:"HostName" default:"" description:"Set Http Request Host Name"`
 	RetryHTTPS   bool   `long:"retry-https" description:"If the initial request fails, reconnect and try with HTTPS."`
 	MaxSize      int    `long:"max-size" default:"256" description:"Max kilobytes to read in response to an HTTP request"`
 	MaxRedirects int    `long:"max-redirects" default:"0" description:"Max number of redirects to follow"`
@@ -280,10 +281,11 @@ func (scanner *Scanner) newHTTPScan(t *zgrab2.ScanTarget) *scan {
 	ret.client.Transport = ret.transport
 	ret.client.Jar = nil // Don't send or receive cookies (otherwise use CookieJar)
 	ret.client.Timeout = scanner.config.Timeout
-	host := t.Domain
-	if host == "" {
-		host = t.IP.String()
+	host := t.IP.String()
+	if host == "<nil>" {
+		host = t.Domain
 	}
+	scan.scanner.config.HostName = host
 	// Scanner Target port overrides config flag port
 	var port uint16
 	if t.Port != nil {
@@ -305,6 +307,7 @@ func (scan *scan) Grab() *zgrab2.ScanError {
 	}
 	// TODO: Headers from input?
 	request.Header.Set("Accept", "*/*")
+	request.HostName = scan.scanner.config.HostName
 	resp, err := scan.client.Do(request)
 	if resp != nil && resp.Body != nil {
 		defer resp.Body.Close()
