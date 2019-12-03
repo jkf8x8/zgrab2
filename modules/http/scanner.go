@@ -307,7 +307,7 @@ func (scan *scan) Grab() *zgrab2.ScanError {
 	}
 	// TODO: Headers from input?
 	request.Header.Set("Accept", "*/*")
-	request.HostName = scan.scanner.config.HostName
+	request.Host = scan.scanner.config.HostName
 	resp, err := scan.client.Do(request)
 	if resp != nil && resp.Body != nil {
 		defer resp.Body.Close()
