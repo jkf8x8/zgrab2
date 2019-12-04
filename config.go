@@ -6,6 +6,7 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
 )
@@ -34,6 +35,14 @@ type Config struct {
 	localAddr          *net.TCPAddr
 }
 
+var RequestTotal = prometheus.NewCounterVec(
+	prometheus.CounterOpts{
+		Name: "reqeust_total",
+		Help: "Number of requests in total",
+	},
+	[]string{"status"},
+)
+
 // SetInputFunc sets the target input function to the provided function.
 func SetInputFunc(f InputTargetsFunc) {
 	config.inputTargets = f
@@ -46,6 +55,7 @@ func SetOutputFunc(f OutputResultsFunc) {
 
 func init() {
 	config.Multiple.ContinueOnError = true // set default for multiple value
+	prometheus.MustRegister(RequestTotal)
 }
 
 var config Config
@@ -106,13 +116,16 @@ func validateFrameworkConfiguration() {
 	runtime.GOMAXPROCS(config.GOMAXPROCS)
 
 	//validate/start prometheus
-	if config.Prometheus != "" {
+	if config.Prometheus == "" {
 		go func() {
 			http.Handle("metrics", promhttp.Handler())
-			if err := http.ListenAndServe(config.Prometheus, nil); err != nil {
-				log.Fatalf("could not run prometheus server: %s", err.Error())
-			}
+			log.Fatal(http.ListenAndServe(":8567", nil))
 		}()
+	}else{
+		go func() {
+			http.Handle("/metrics", promhttp.Handler())
+			log.Fatal(http.ListenAndServe(config.Prometheus, nil))
+		}()	
 	}
 
 	//validate senders
