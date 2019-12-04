@@ -1,5 +1,7 @@
 package zgrab2
 
+import "github.com/prometheus/client_golang/prometheus"
+
 // Monitor is a collection of states per scans and a channel to communicate
 // those scans to the monitor
 type Monitor struct {
@@ -50,8 +52,10 @@ func MakeMonitor() *Monitor {
 			}
 			switch s.st {
 			case statusSuccess:
+				RequestTotal.With(prometheus.Labels{"status": "Successes"}).Inc()
 				m.states[s.name].Successes++
 			case statusFailure:
+				RequestTotal.With(prometheus.Labels{"status": "Failures"}).Inc()
 				m.states[s.name].Failures++
 			default:
 				continue
