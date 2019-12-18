@@ -301,8 +301,7 @@ func (scanner *Scanner) newHTTPScan(t *zgrab2.ScanTarget) *scan {
 // Grab performs the HTTP scan -- implementation taken from zgrab/zlib/grabber.go
 func (scan *scan) Grab() *zgrab2.ScanError {
 	// TODO: Allow body?
-	scanurl := scan.url[0:len(scan.url)-1]
-	request, err := http.NewRequest(scan.scanner.config.Method, scanurl, nil)
+	request, err := http.NewRequest(scan.scanner.config.Method, scan.url, nil)
 	if err != nil {
 		return zgrab2.NewScanError(zgrab2.SCAN_UNKNOWN_ERROR, err)
 	}
