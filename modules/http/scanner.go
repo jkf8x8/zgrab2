@@ -284,8 +284,9 @@ func (scanner *Scanner) newHTTPScan(t *zgrab2.ScanTarget) *scan {
 	host := t.IP.String()
 	if host == "<nil>" {
 		host = t.Domain
+		scanner.config.HostName = host
 	}
-	scanner.config.HostName = host
+	
 	// Scanner Target port overrides config flag port
 	var port uint16
 	if t.Port != nil {
